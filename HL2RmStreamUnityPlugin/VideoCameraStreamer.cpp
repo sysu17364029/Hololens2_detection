@@ -203,6 +203,22 @@ void VideoCameraStreamer::OnConnectionReceived(
     }
 }
 
+void VideoCameraStreamer::HttpConnection()
+{
+    Windows::Web::Http::HttpResponseMessage httpResponseMessage;
+    std::wstring httpResponseBody;
+    
+    try
+    {
+        Windows::Web::Http::HttpClient httpClient;
+        Uri requestUri{ L"https://192.168.43.123" };
+        
+        Windows::Web::Http::HttpStringContent jsonContent(
+            
+        );
+    }
+}
+
 void VideoCameraStreamer::CameraStreamThread(VideoCameraStreamer* pStreamer)
 {
 #if DBG_ENABLE_INFO_LOGGING
