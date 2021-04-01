@@ -1,4 +1,6 @@
 #include "pch.h"
+#include <iostream>
+#include <sstream>
 
 #define DBG_ENABLE_VERBOSE_LOGGING 0
 #define DBG_ENABLE_INFO_LOGGING 1
@@ -11,6 +13,7 @@ using namespace winrt::Windows::Graphics::Imaging;
 using namespace winrt::Windows::Perception::Spatial;
 using namespace winrt::Windows::Networking::Sockets;
 using namespace winrt::Windows::Storage::Streams;
+using namespace winrt::Windows::Web::Http;
 
 const int VideoCameraStreamer::kImageWidth = 640;
 const wchar_t VideoCameraStreamer::kSensorName[3] = L"PV";
@@ -203,22 +206,6 @@ void VideoCameraStreamer::OnConnectionReceived(
     }
 }
 
-void VideoCameraStreamer::HttpConnection()
-{
-    Windows::Web::Http::HttpResponseMessage httpResponseMessage;
-    std::wstring httpResponseBody;
-    
-    try
-    {
-        Windows::Web::Http::HttpClient httpClient;
-        Uri requestUri{ L"https://192.168.43.123" };
-        
-        Windows::Web::Http::HttpStringContent jsonContent(
-            
-        );
-    }
-}
-
 void VideoCameraStreamer::CameraStreamThread(VideoCameraStreamer* pStreamer)
 {
 #if DBG_ENABLE_INFO_LOGGING
@@ -250,6 +237,9 @@ void VideoCameraStreamer::SendFrame(
     MediaFrameReference pFrame,
     long long pTimestamp)
 {
+    HttpResponseMessage httpResponseMessage;
+    std::wstring httpResponseBody;
+    
 #if DBG_ENABLE_INFO_LOGGING
     OutputDebugStringW(L"VideoCameraStreamer::SendFrame: Received frame for sending!\n");
 #endif
@@ -356,7 +346,7 @@ void VideoCameraStreamer::SendFrame(
         WriteMatrix4x4(PVtoWorldtransform);
 
         m_writer.WriteBytes(imageBufferAsVector);
-
+        
 #if DBG_ENABLE_VERBOSE_LOGGING
         OutputDebugStringW(L"VideoCameraStreamer::SendFrame: Trying to store writer...\n");
 #endif
@@ -381,6 +371,16 @@ void VideoCameraStreamer::SendFrame(
     }
 
     m_writeInProgress = false;
+    
+    try
+    {
+        Windows::Web::Http::HttpClient httpClient;
+        Uri requestUri{ L"https://192.168.43.123" };
+        
+        Windows::Web::Http::HttpStringContent jsonContent(
+            L"{\"Timestamp\":pTimestamp,\"ImageWidth\":imageWidth,\"ImageHeight\":imageHeight,}",
+            UnicodeEncoding::Utf8,
+            L"application/json");
 
 #if DBG_ENABLE_VERBOSE_LOGGING
     OutputDebugStringW(
