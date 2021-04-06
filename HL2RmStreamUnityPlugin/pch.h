@@ -23,8 +23,4 @@
 #include <winrt\Windows.Graphics.Imaging.h>
 
 #include "TimeConverter.h"
-#include "ResearchModeApi.h"
-#include "IResearchModeFrameSink.h"
-#include "ResearchModeFrameProcessor.h"
 #include "VideoCameraStreamer.h"
-#include "Streamer.h"
