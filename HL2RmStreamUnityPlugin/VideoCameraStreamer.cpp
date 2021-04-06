@@ -1,4 +1,6 @@
 #include "pch.h"
+#include <iostream>
+#include <sstream>
 
 #define DBG_ENABLE_VERBOSE_LOGGING 0
 #define DBG_ENABLE_INFO_LOGGING 1
@@ -11,6 +13,7 @@ using namespace winrt::Windows::Graphics::Imaging;
 using namespace winrt::Windows::Perception::Spatial;
 using namespace winrt::Windows::Networking::Sockets;
 using namespace winrt::Windows::Storage::Streams;
+using namespace winrt::Windows::Web::Http;
 
 const int VideoCameraStreamer::kImageWidth = 640;
 const wchar_t VideoCameraStreamer::kSensorName[3] = L"PV";
@@ -148,9 +151,7 @@ IAsyncAction VideoCameraStreamer::StartServer()
         // The ConnectionReceived event is raised when connections are received.
         m_streamSocketListener.ConnectionReceived({ this, &VideoCameraStreamer::OnConnectionReceived });
 
-        // Start listening for incoming TCP connections on the specified port. You can specify any port that's not currently in use.
-        // Every protocol typically has a standard port number. For example, HTTP is typically 80, FTP is 20 and 21, etc.
-        // For this example, we'll choose an arbitrary port number.
+        // Start listening for incoming TCP connections on the specified port. 
         co_await m_streamSocketListener.BindServiceNameAsync(m_portName);
         //m_streamSocketListener.Control().KeepAlive(true);
 
@@ -234,6 +235,9 @@ void VideoCameraStreamer::SendFrame(
     MediaFrameReference pFrame,
     long long pTimestamp)
 {
+    //HttpResponseMessage httpResponseMessage;
+    //std::wstring httpResponseBody;
+    
 #if DBG_ENABLE_INFO_LOGGING
     OutputDebugStringW(L"VideoCameraStreamer::SendFrame: Received frame for sending!\n");
 #endif
@@ -340,7 +344,7 @@ void VideoCameraStreamer::SendFrame(
         WriteMatrix4x4(PVtoWorldtransform);
 
         m_writer.WriteBytes(imageBufferAsVector);
-
+        
 #if DBG_ENABLE_VERBOSE_LOGGING
         OutputDebugStringW(L"VideoCameraStreamer::SendFrame: Trying to store writer...\n");
 #endif
@@ -365,7 +369,25 @@ void VideoCameraStreamer::SendFrame(
     }
 
     m_writeInProgress = false;
-
+    /*
+    IInputStream response = m_streamSocket.InputStream();
+    printf("%s", response);
+    if (response)
+    {
+        OutputDebugStringW(L"Received!\n");
+    }
+    */
+    /*
+    try
+    {
+        Windows::Web::Http::HttpClient httpClient;
+        Uri requestUri{ L"https://192.168.43.123" };
+        
+        Windows::Web::Http::HttpStringContent jsonContent(
+            L"{\"Timestamp\":pTimestamp,\"ImageWidth\":imageWidth,\"ImageHeight\":imageHeight,}",
+            UnicodeEncoding::Utf8,
+            L"application/json");
+*/
 #if DBG_ENABLE_VERBOSE_LOGGING
     OutputDebugStringW(
         L"VideoCameraStreamer::SendFrame: Frame sent!\n");
