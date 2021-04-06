@@ -235,8 +235,13 @@ void VideoCameraStreamer::SendFrame(
     MediaFrameReference pFrame,
     long long pTimestamp)
 {
+<<<<<<< HEAD
     //HttpResponseMessage httpResponseMessage;
     //std::wstring httpResponseBody;
+=======
+    HttpResponseMessage httpResponseMessage;
+    std::wstring httpResponseBody;
+>>>>>>> 11b16a13dbf90a316f57777fa0f2d853f6633b77
     
 #if DBG_ENABLE_INFO_LOGGING
     OutputDebugStringW(L"VideoCameraStreamer::SendFrame: Received frame for sending!\n");
@@ -369,6 +374,7 @@ void VideoCameraStreamer::SendFrame(
     }
 
     m_writeInProgress = false;
+<<<<<<< HEAD
     /*
     IInputStream response = m_streamSocket.InputStream();
     printf("%s", response);
@@ -378,6 +384,9 @@ void VideoCameraStreamer::SendFrame(
     }
     */
     /*
+=======
+    
+>>>>>>> 11b16a13dbf90a316f57777fa0f2d853f6633b77
     try
     {
         Windows::Web::Http::HttpClient httpClient;
@@ -387,7 +396,11 @@ void VideoCameraStreamer::SendFrame(
             L"{\"Timestamp\":pTimestamp,\"ImageWidth\":imageWidth,\"ImageHeight\":imageHeight,}",
             UnicodeEncoding::Utf8,
             L"application/json");
+<<<<<<< HEAD
 */
+=======
+
+>>>>>>> 11b16a13dbf90a316f57777fa0f2d853f6633b77
 #if DBG_ENABLE_VERBOSE_LOGGING
     OutputDebugStringW(
         L"VideoCameraStreamer::SendFrame: Frame sent!\n");
