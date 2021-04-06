@@ -15,8 +15,6 @@ import json
 
 np.warnings.filterwarnings('ignore')
 
-# Definitions
-# Protocol Header Format
 VIDEO_STREAM_HEADER_FORMAT = "@qIIII18f"
 
 VIDEO_FRAME_STREAM_HEADER = namedtuple(
@@ -125,9 +123,9 @@ def detection(frame):
             'Y2': boxes[i][3],
             'Unknown': boxes[i][4],
             'Conf': boxes[i][5],
-            'Name': boxes[i][6],
+            'Name': boxes[i][6]
             })
-     
+    print(formatBoxes) 
     formatBoxes = json.dumps(formatBoxes)
 		
     return result_img, formatBoxes
@@ -135,19 +133,31 @@ def detection(frame):
     
 
 if __name__ == '__main__':
+	
+    #video_receiver.socket.send(b'test')
+
     video_receiver = VideoReceiverThread(HOST)
     video_receiver.start_socket()
     video_receiver.start_listen()
-	
-    #video_receiver.socket.send(b'test')
 
     namesfile = 'data/coco.names'
     class_names = load_class_names(namesfile)
 
+    s = socket.socket()
+    s.bind(('0.0.0.0', 5000))
+    #s.bind(('127.0.0.1', 5000))
+    s.listen()
+    c, addr = s.accept()
+    #c.send(b'test')
+    #print("well")
+
+
     while True:
         if np.any(video_receiver.latest_frame) :
             result_img, formatBoxes = detection(video_receiver.latest_frame)
-            video_receiver.socket.send(formatBoxes.encode('utf8'))
+            c.send(formatBoxes.encode('utf8'))
+            #c.send(b'test')
+            #print("fine")
             cv2.imshow('Result', result_img)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
