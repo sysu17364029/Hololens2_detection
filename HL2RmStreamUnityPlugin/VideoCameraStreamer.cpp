@@ -1,6 +1,4 @@
 #include "pch.h"
-#include <iostream>
-#include <sstream>
 
 #define DBG_ENABLE_VERBOSE_LOGGING 0
 #define DBG_ENABLE_INFO_LOGGING 1
@@ -13,7 +11,6 @@ using namespace winrt::Windows::Graphics::Imaging;
 using namespace winrt::Windows::Perception::Spatial;
 using namespace winrt::Windows::Networking::Sockets;
 using namespace winrt::Windows::Storage::Streams;
-using namespace winrt::Windows::Web::Http;
 
 const int VideoCameraStreamer::kImageWidth = 640;
 const wchar_t VideoCameraStreamer::kSensorName[3] = L"PV";
@@ -151,7 +148,9 @@ IAsyncAction VideoCameraStreamer::StartServer()
         // The ConnectionReceived event is raised when connections are received.
         m_streamSocketListener.ConnectionReceived({ this, &VideoCameraStreamer::OnConnectionReceived });
 
-        // Start listening for incoming TCP connections on the specified port. 
+        // Start listening for incoming TCP connections on the specified port. You can specify any port that's not currently in use.
+        // Every protocol typically has a standard port number. For example, HTTP is typically 80, FTP is 20 and 21, etc.
+        // For this example, we'll choose an arbitrary port number.
         co_await m_streamSocketListener.BindServiceNameAsync(m_portName);
         //m_streamSocketListener.Control().KeepAlive(true);
 
@@ -235,14 +234,6 @@ void VideoCameraStreamer::SendFrame(
     MediaFrameReference pFrame,
     long long pTimestamp)
 {
-<<<<<<< HEAD
-    //HttpResponseMessage httpResponseMessage;
-    //std::wstring httpResponseBody;
-=======
-    HttpResponseMessage httpResponseMessage;
-    std::wstring httpResponseBody;
->>>>>>> 11b16a13dbf90a316f57777fa0f2d853f6633b77
-    
 #if DBG_ENABLE_INFO_LOGGING
     OutputDebugStringW(L"VideoCameraStreamer::SendFrame: Received frame for sending!\n");
 #endif
@@ -337,19 +328,27 @@ void VideoCameraStreamer::SendFrame(
     m_writeInProgress = true;
     try
     {
+        int outImageWidth = imageWidth / scaleFactor;
+        int outImageHeight = imageHeight / scaleFactor;
+
+        // pixel stride is reduced by 1 since we skip alpha channel
+        int outPixelStride = pixelStride - 1;
+        int outRowStride = outImageWidth * outPixelStride;
+
+
         // Write header
         m_writer.WriteUInt64(pTimestamp);
-        m_writer.WriteInt32(imageWidth);
-        m_writer.WriteInt32(imageHeight);
-        m_writer.WriteInt32(pixelStride - 1);
-        m_writer.WriteInt32(imageWidth * (pixelStride - 1)); // adapted row stride
+        m_writer.WriteInt32(outImageWidth);
+        m_writer.WriteInt32(outImageHeight);
+        m_writer.WriteInt32(outPixelStride);
+        m_writer.WriteInt32(outRowStride);
         m_writer.WriteSingle(fx);
         m_writer.WriteSingle(fy);
 
         WriteMatrix4x4(PVtoWorldtransform);
 
         m_writer.WriteBytes(imageBufferAsVector);
-        
+
 #if DBG_ENABLE_VERBOSE_LOGGING
         OutputDebugStringW(L"VideoCameraStreamer::SendFrame: Trying to store writer...\n");
 #endif
@@ -374,33 +373,7 @@ void VideoCameraStreamer::SendFrame(
     }
 
     m_writeInProgress = false;
-<<<<<<< HEAD
-    /*
-    IInputStream response = m_streamSocket.InputStream();
-    printf("%s", response);
-    if (response)
-    {
-        OutputDebugStringW(L"Received!\n");
-    }
-    */
-    /*
-=======
-    
->>>>>>> 11b16a13dbf90a316f57777fa0f2d853f6633b77
-    try
-    {
-        Windows::Web::Http::HttpClient httpClient;
-        Uri requestUri{ L"https://192.168.43.123" };
-        
-        Windows::Web::Http::HttpStringContent jsonContent(
-            L"{\"Timestamp\":pTimestamp,\"ImageWidth\":imageWidth,\"ImageHeight\":imageHeight,}",
-            UnicodeEncoding::Utf8,
-            L"application/json");
-<<<<<<< HEAD
-*/
-=======
 
->>>>>>> 11b16a13dbf90a316f57777fa0f2d853f6633b77
 #if DBG_ENABLE_VERBOSE_LOGGING
     OutputDebugStringW(
         L"VideoCameraStreamer::SendFrame: Frame sent!\n");
