@@ -5,7 +5,7 @@ Unity Plugin for accessing HoloLens2 Research Mode sensors and video camera, and
 Currently, only Depth AHAT and video camera streams are enabled, but an extension to other RM sensors should be straight forward and will probably be added in the future. The image, as well as ```rig2world``` transforms for AHAT and and ```pv2world```, ```fx``` and ```fy``` for video camera are transmitted for each frame.
 
 ## Using the Plugin
-1. Open the [plugin solution](https://github.com/cgsaxner/HoloLens2-Unity-ResearchModeStreamer/tree/master/HL2RmStreamUnityPlugin) in Visual Studio
+1. Open the [plugin solution](https://github.com/sysu17364029/Hololens2_detection/tree/main/HL2RmStreamUnityPlugin) in Visual Studio
 2. Build the solution for ```Release, ARM64```.
 3. In your Unity Project, create a folder ```Assets/Plugins/WSAPlayer/ARM64```.
 4. Copy the  ```HL2RmStreamUnityPlugin.dll``` from ```HL2RmStreamUnityPlugin/ARM64/Release/HL2RmStreamUnityPlugin``` into the folder from step 3.
@@ -14,7 +14,7 @@ Currently, only Depth AHAT and video camera streams are enabled, but an extensio
 [DllImport("HL2RmStreamUnityPlugin", EntryPoint = "StartStreaming", CallingConvention = CallingConvention.StdCall)]
 public static extern void StartStreaming();
 ``` 
-6. You can call ```StartStreaming()``` from Unity. An example can be found in [UnityHL2RmStreamer](https://github.com/cgsaxner/HoloLens2-Unity-ResearchModeStreamer/tree/master/UnityHL2RmStreamer).
+6. You can call ```StartStreaming()``` from Unity. 
 7. Before building the Unity Project, go to ```Build Settings -> Player Settings``` the following Capabilities are enabled: 
     *  InternetClient, InternetClientServer, PrivateNetworkClientServer, WebCam, SpatialPerception.
 8. Build the Unity Project and open the solution in Visual Studio.
@@ -29,5 +29,8 @@ public static extern void StartStreaming();
 10. Build solution for ```Release, ARM64``` and deploy to HoloLens2.
 
 ## Python Client
-A simple client written in python for receiving and displaying the frames is available in [hololens2_simpleclient.py](https://github.com/cgsaxner/HoloLens2-Unity-ResearchModeStreamer/blob/master/py/hololens2_simpleclient.py).
+服务器作为检测结果传输的server [hololens2_detect.py](https://github.com/sysu17364029/Hololens2_detection/blob/main/hololens2_detect.py).
+服务器作为检测结果传输的client [hdetect.py](https://github.com/sysu17364029/Hololens2_detection/blob/main/hdetect.py).
 
+## Unity
+接收检测结果并显示  [StartReceive.cs](https://github.com/sysu17364029/Hololens2_detection/blob/main/UnityHL2RmStreamer/Assets/Scripts/StartReceive.cs).
