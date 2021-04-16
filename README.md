@@ -30,6 +30,7 @@ public static extern void StartStreaming();
 
 ## Python Client
 服务器作为检测结果传输的server [hololens2_detect.py](https://github.com/sysu17364029/Hololens2_detection/blob/main/hololens2_detect.py).
+
 服务器作为检测结果传输的client [hdetect.py](https://github.com/sysu17364029/Hololens2_detection/blob/main/hdetect.py).
 
 ## Unity
