@@ -31,10 +31,9 @@ public class Consumer
     {
         sendata = new byte[this.container[0].Length];   
         Array.Copy(this.container[0], sendata, this.container[0].Length);   // 取出共享缓冲区的图片
-        Debug.LogError("Copy Product!\n");
-
+        //Debug.LogError("Copy Product!\n");
         this.container.RemoveAt(0); // 清空共享缓冲区
-        Debug.LogError("Write Product!\n");
+        //Debug.LogError("Write Product!\n");
     }
 
     // 将要发送的数据打包成 Json 格式
@@ -42,14 +41,14 @@ public class Consumer
     {
         FrameNetwork.i = FrameNetwork.i + 1;
         ImageFrame iframe = new ImageFrame();
-        TimeSpan ts = DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0);
+        TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
         iframe.FrameID = FrameNetwork.i;
         iframe.Frame = sendata;
         iframe.SendTime = Convert.ToInt64(ts.TotalMilliseconds);
         //JavaScriptSerializer js = new JavaScriptSerializer();
-        Debug.LogError("Try to change Json!\n");
+        //Debug.LogError("Try to change Json!\n");
         string imfo = JsonConvert.SerializeObject(iframe).ToString();
-        Debug.LogError("Get Json!\n");
+        //Debug.LogError("Get Json!\n");
         return imfo;
     }
 }
@@ -96,8 +95,9 @@ public class FrameNetwork : MonoBehaviour
 
     List<Array> container = new List<Array>();
     Consumer consumer = null;
-    public static int i = 0;
-    public static ClientWebSocket webSocket;
+    public static int i = 0;    // 发给服务器的帧id
+    public static int ii = 0;   // 实际的帧id
+    public static ClientWebSocket webSocket = null;
 
 
     // Start is called before the first frame update
@@ -127,12 +127,12 @@ public class FrameNetwork : MonoBehaviour
     
     void GetData()
     {
-        Debug.LogError("GetData!\n");
+        //Debug.LogError("GetData!\n");
         hdata = ReceiveAll(header_size);
 
-        Debug.LogError("Come to Header!\n");
+        //Debug.LogError("Come to Header!\n");
         Header();
-        Debug.LogError("Header is over!\n");
+        //Debug.LogError("Header is over!\n");
 
         string message = Timestamp.ToString();
         Debug.LogError(message);
@@ -140,31 +140,42 @@ public class FrameNetwork : MonoBehaviour
         int image_size = ImageHeight * RowStride;
         Debug.LogError(image_size.ToString());
         idata = ReceiveAll(image_size);
-        
+        ii = ii + 1;
+        //string filename1 = string.Format(@"New_{0}_{1}.txt", ii, DateTime.Now.TimeOfDay.ToString().Replace(":", "."));
+        //string filePath1 = System.IO.Path.Combine("C:/Data/Users/edwin3280@163.com/AppData/Local/Packages/Template3D_pzq3xp76mxafg/LocalState/", filename1);
+        //FileStream fs1 = null;
+        //fs1 = new FileStream(filePath1, FileMode.Create, FileAccess.ReadWrite);
+        //if (fs1 != null) { fs1.Close(); }
+
         int showlen = idata.Length;
         Debug.LogError(showlen.ToString());
 
         if (image_size != 0)
         {
-            Debug.LogError("GetData Lock!\n");
+            //Debug.LogError("GetData Lock!\n");
             lock (this)
             {
                 if (this.container.Count == 0)
                 {
                     this.container.Add(idata);
                     Debug.LogError("New Product!\n");
-                    Monitor.Pulse(this);
-                    Debug.LogError("Release GD Lock!\n");
+                    //Monitor.Pulse(this);
+                    //Debug.LogError("Release GD Lock!\n");
                 }
                 else
                 {
                     this.container.RemoveAt(0);
                     this.container.Add(idata);
                     Debug.LogError("Renew Product!\n");
-                    Monitor.Pulse(this);
+                    string filename1 = string.Format(@"Renew_{0}_{1}.txt", ii, DateTime.Now.TimeOfDay.ToString().Replace(":", "."));
+                    string filePath1 = System.IO.Path.Combine("C:/Data/Users/edwin3280@163.com/AppData/Local/Packages/Template3D_pzq3xp76mxafg/LocalState/", filename1);
+                    FileStream fs1 = null;
+                    fs1 = new FileStream(filePath1, FileMode.Create, FileAccess.ReadWrite);
+                    if (fs1 != null) { fs1.Close(); }
+                    //Monitor.Pulse(this);
                 }
-                Monitor.Wait(this);
-                Debug.LogError("Release GD Lock!\n");
+                //Monitor.Wait(this);
+                //Debug.LogError("Release GD Lock!\n");
             }
         }
     }
@@ -216,36 +227,48 @@ public class FrameNetwork : MonoBehaviour
     {
         // 创建一个消费者
         consumer = new Consumer(this.container);
-        Debug.LogError("New Consumer!\n");
+        //Debug.LogError("New Consumer!\n");
         await Connect(webSocket, "ws://192.168.43.123:12345");  
 
         while (true)
         {
-            if(Consumer.sendata==null)
+            if (webSocket.State != WebSocketState.Open)
             {
-                Debug.LogError("Consumer Lock is Coming!\n");
+                Debug.LogError(webSocket.State.ToString());
+                Debug.LogError(webSocket.CloseStatusDescription);
+            }
+
+            //if ((Consumer.sendata == null) && (WebSocketReceive.confirm == 1)) 
+            //if (Consumer.sendata == null) 
+            if ((Consumer.sendata == null) && (Global.ok == 1)) 
+            {
+                //Debug.LogError("Consumer Lock is Coming!\n");
                 lock (this)
                 {
-                    Debug.LogError("Consumer Lock!\n");
+                    //Debug.LogError("Consumer Lock!\n");
                     if (this.container.Count != 0)
                     {
-                        Debug.LogError("Consumer container had data!\n");
+                        //Debug.LogError("Consumer container had data!\n");
                         consumer.Consumption();
-                        Debug.LogError("Get Product!\n");
-                        Monitor.Pulse(this);
+                        //Debug.LogError("Get Product!\n");
+                        //Monitor.Pulse(this);
                     }
-                    Monitor.Wait(this);
-                    Debug.LogError("Release Consumer Lock!\n");
+                    //Monitor.Wait(this);
+                    //Debug.LogError("Release Consumer Lock!\n");
                 }
                 if (Consumer.sendata != null) 
                 {
-                    Debug.LogError("sendata get data!\n");
+                    //Debug.LogError("sendata get data!\n");
                     string sendframe = consumer.FrameJson();
                     byte[] byteArray = Encoding.UTF8.GetBytes(sendframe);
-                    Debug.LogError("Already to Send!\n");
+                    //Debug.LogError("Already to Send!\n");
                     await Send(webSocket, byteArray);   // 发送数据到服务器
                     Consumer.sendata = null;
-                    Debug.LogError("Clear sendata!\n");
+                    //Debug.LogError("Clear sendata!\n");
+                    lock (Global.locker)
+                    {
+                        Global.ok = 0;
+                    }
                 }
             }
         }
@@ -258,7 +281,7 @@ public class FrameNetwork : MonoBehaviour
         {
             //webSocket = new ClientWebSocket();
             await webSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
-            Debug.LogError("webSocket!\n");
+            //Debug.LogError("webSocket!\n");
         }
         catch (Exception e)
         {
@@ -274,7 +297,7 @@ public class FrameNetwork : MonoBehaviour
             try
             {
                 await webSocket.SendAsync(new ArraySegment<byte>(msg), WebSocketMessageType.Binary, true, CancellationToken.None);
-                Debug.LogError("Send to Server!\n");
+                //Debug.LogError("Send to Server!\n");
             }
             catch (Exception ex)
             {
